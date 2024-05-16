@@ -1,0 +1,14 @@
+bdydta.F90   - one way changes, copied over
+bdyini.F90   - one way changes, copied over
+bdy_oce.F90   - one way changes, copied over
+diawri.F90    - one way changes, copied over
+domain.F90    - one way changes, copied over
+dom_oce.F90   - one way changes, copied over
+dtatsd.F90    - one way changes, copied over
+dynspg_ts.F90
+in_out_manager.F90 - one way changes, copied over
+restart.F90  - one way changes, copied over
+sbcssm.F90 - one way changes, copied over
+tide.h90  - one way changes, copied over
+tide_mod.F90 - one way changes, copied over
+traqsr.F90 - one way changes, copied over

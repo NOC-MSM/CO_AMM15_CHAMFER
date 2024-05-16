@@ -1,0 +1,14 @@
+RDP 15/05/2024
+
+This directory contains a merging of AMM15 and MOMTRD code. The steps taken
+were as follows:
+
+1) List AMM15 files stored in CO_AMM15_main
+2) Identify differences MOMTRD and standard nemo_4.0.4 for these scripts
+          - scripts with no changes are copied here from CO_AMM15_main
+          - scripts with changes are copied from nemo_4.0.4_trd/src
+            and placed here
+          - differences between nemo4.0.4 and AMM files are then identified
+            and the respective MOM files (now here) are updated accordingly
+            with AMM differences
+3) All atmospheric diagnostics written by A Wise are added to this directory
