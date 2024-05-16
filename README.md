@@ -1,7 +1,8 @@
 # CHAMFER AMM15 Configuration Based on CO9_AMM15_P2.0
 
-MY_SRC and EXPREF for 1993 initialisation of CO9_AMM15_P2.0. The configuration
-diverges as follows:
+MY_SRC and EXPREF for 1993 initialisation of
+ [CO9_AMM15_P2.0](https://github.com/JMMP-Group/CO_AMM15/tree/CO9). 
+The configuration diverges as follows:
 
 - GLOSEA6 lateral forcing for both the atlantic and baltic boundary conditions
 - MY_SRC includes Momentum Trend capability with Anthony Wise's atmospheric
