@@ -49,7 +49,7 @@ MODULE trddyn
    REAL(wp), ALLOCATABLE, DIMENSION(:,:)  , SAVE :: zutrd_tfr2d, zvtrd_tfr2d
    REAL(wp), ALLOCATABLE, DIMENSION(:,:)  , SAVE :: zutrd_bfr2d, zvtrd_bfr2d
 !AW add atmospheric pressure to mom trend
-   REAL(dp), ALLOCATABLE, DIMENSION(:,:)  , SAVE :: zutrd_atm2d, zvtrd_atm2d
+   REAL(wp), ALLOCATABLE, DIMENSION(:,:)  , SAVE :: zutrd_atm2d, zvtrd_atm2d
 !AW end
 
    !! * Substitutions

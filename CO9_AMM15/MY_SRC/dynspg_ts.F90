@@ -362,9 +362,11 @@ CONTAINS
       !                                   !  ----------------------------------  !
       IF( ln_apr_dyn ) THEN
 !AW add atm to mom trends
-         ! initialise fields for atmospheric pressure trends
-         zatmtrdu(:,:) = zu_frc(:,:)
-         zatmtrdv(:,:) = zv_frc(:,:)
+         IF( l_trddyn ) THEN
+            ! initialise fields for atmospheric pressure trends
+            zatmtrdu(:,:) = zu_frc(:,:)
+            zatmtrdv(:,:) = zv_frc(:,:)
+         ENDIF
 !AW end
          IF( ln_bt_fw ) THEN                          ! FORWARD integration: use kt+1/2 pressure (NOW+1/2)
             DO jj = 2, jpjm1              
@@ -390,7 +392,7 @@ CONTAINS
          ! atmospheric pressure trend diagnostic
          zatmtrdu(:,:) = zu_frc(:,:) - zatmtrdu(:,:)
          zatmtrdv(:,:) = zv_frc(:,:) - zatmtrdv(:,:)
-         CALL trd_dyn( zatmtrdu, zatmtrdv, jpdyn_atm, kt, Kmm)
+         CALL trd_dyn( zatmtrdu, zatmtrdv, jpdyn_atm, kt)
       ENDIF
 !AW end
       !
