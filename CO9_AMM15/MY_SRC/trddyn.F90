@@ -51,6 +51,9 @@ MODULE trddyn
 !AW add atmospheric pressure to mom trend
    REAL(wp), ALLOCATABLE, DIMENSION(:,:)  , SAVE :: zutrd_atm2d, zvtrd_atm2d
 !AW end
+! RDP
+   REAL(wp), ALLOCATABLE, DIMENSION(:,:)  , SAVE :: zutrd_bdy2d, zvtrd_bdy2d
+! RDP END
 
    !! * Substitutions
 #  include "vectopt_loop_substitute.h90"
@@ -207,6 +210,18 @@ CONTAINS
             !
          ENDIF
          !
+! RDP add bdy2d to mom trend
+      CASE( jpdyn_bdy )
+          !
+         IF( ALLOCATED( zutrd_bdy2d ) ) THEN
+            DO jk = 1, jpkm1
+               putrd(:,:,jk) = ( putrd(:,:,jk) + zutrd_bdy2d(:,:) ) * umask(:,:,jk)
+               pvtrd(:,:,jk) = ( pvtrd(:,:,jk) + zvtrd_bdy2d(:,:) ) * vmask(:,:,jk)
+            END DO
+            DEALLOCATE( zutrd_bdy2d, zvtrd_bdy2d )
+         ENDIF
+! RDP END 
+
       CASE( jpdyn_tot ) 
          ! Don't need to do anything special for TOT trends, but we are at the end of the timestep, so
          ! write out total top and bottom friction "trends" for the surface / bottom layers after 
@@ -337,6 +352,8 @@ CONTAINS
                 zutrd_hpg(:,:,jk) = zutrd_hpg(:,:,jk) + zutrd_atm2d(:,:) + putrd(:,:)
                 zvtrd_hpg(:,:,jk) = zvtrd_hpg(:,:,jk) + zvtrd_atm2d(:,:) + pvtrd(:,:)
              ENDDO
+!AW remove          
+             DEALLOCATE( zutrd_atm2d, zvtrd_atm2d ) 
           ELSE
 !AW end
              DO jk = 1, jpkm1
@@ -346,8 +363,6 @@ CONTAINS
           ENDIF
           CALL trd_dyn_3d( zutrd_hpg, zvtrd_hpg, jpdyn_hpg, kt )
           DEALLOCATE( zutrd_hpg, zvtrd_hpg )
-!AW remove          
-          DEALLOCATE( zutrd_atm2d, zvtrd_atm2d ) 
 
       CASE( jpdyn_pvo )
           !
@@ -391,6 +406,15 @@ CONTAINS
           zutrd_atm2d(:,:) = putrd(:,:)
           zvtrd_atm2d(:,:) = pvtrd(:,:)          
 ! AW end
+
+! RDP add bdy2d to mom trend
+      CASE( jpdyn_bdy2d )
+          !
+          ! Save 2D lateral boundary forcing
+          ALLOCATE( zutrd_bdy2d(jpi,jpj), zvtrd_bdy2d(jpi,jpj) )
+          zutrd_bdy2d(:,:) = putrd(:,:)
+          zvtrd_bdy2d(:,:) = pvtrd(:,:)          
+! RDP end
 
       CASE( jpdyn_tau2d )
           !
@@ -504,6 +528,10 @@ CONTAINS
                               DEALLOCATE( z3dx , z3dy )
       CASE( jpdyn_zad )   ;   CALL iom_put( "utrd_zad", putrd )    ! vertical advection
                               CALL iom_put( "vtrd_zad", pvtrd )
+!RDP add bdy 
+      CASE( jpdyn_bdy )   ;   CALL iom_put( "utrd_bdy", putrd )    ! lateral boundary forcing trend
+                              CALL iom_put( "vtrd_bdy", pvtrd )
+!RDP end
       CASE( jpdyn_ldf )   ;   CALL iom_put( "utrd_ldf", putrd )    ! lateral  diffusion
                               CALL iom_put( "vtrd_ldf", pvtrd )
       CASE( jpdyn_zdf )   ;   CALL iom_put( "utrd_zdf", putrd )    ! vertical diffusion 
@@ -546,6 +574,10 @@ CONTAINS
       CASE( jpdyn_atm )      ;   CALL iom_put( "utrd_atm2d", putrd )      ! atmospheric pressure gradient trend
                                  CALL iom_put( "vtrd_atm2d", pvtrd )
 !AW end
+!RDP add bdy 
+      CASE( jpdyn_bdy2d )    ;   CALL iom_put( "utrd_bdy2d", putrd )      ! lateral boundary forcing trend
+                                 CALL iom_put( "vtrd_bdy2d", pvtrd )
+!RDP end
       CASE( jpdyn_frc2d )    ;   CALL iom_put( "utrd_frc2d", putrd )      ! constant forcing term from barotropic calcn.
                                  CALL iom_put( "vtrd_frc2d", pvtrd ) 
       CASE( jpdyn_tau )      ;   CALL iom_put( "utrd_tau", putrd )        ! surface wind stress trend

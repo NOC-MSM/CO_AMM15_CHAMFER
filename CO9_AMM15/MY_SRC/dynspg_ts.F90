@@ -81,6 +81,7 @@ MODULE dynspg_ts
    REAL(wp), ALLOCATABLE, SAVE, DIMENSION(:,:) ::   zwz                ! ff_f/h at F points
    REAL(wp), ALLOCATABLE, SAVE, DIMENSION(:,:) ::   ftnw, ftne         ! triad of coriolis parameter
    REAL(wp), ALLOCATABLE, SAVE, DIMENSION(:,:) ::   ftsw, ftse         ! (only used with een vorticity scheme)
+   REAL(wp), ALLOCATABLE,       DIMENSION(:,:) ::   ua_tmp, va_tmp     ! RDP: temporary save of 2d momentum
 
    REAL(wp) ::   r1_12 = 1._wp / 12._wp   ! local ratios
    REAL(wp) ::   r1_8  = 0.125_wp         !
@@ -176,6 +177,7 @@ CONTAINS
 !AW add in atmospheric pressure effect to mom trend output
       REAL(wp), ALLOCATABLE, DIMENSION(:,:) :: zatmtrdu, zatmtrdv  !ATM trends (if l_trddyn) 
 !AW end
+      REAL(wp), ALLOCATABLE, DIMENSION(:,:) :: zbdytrdu, zbdytrdv 
       !!----------------------------------------------------------------------
       !
       IF( ln_wd_il ) ALLOCATE( zcpx(jpi,jpj), zcpy(jpi,jpj) )
@@ -193,6 +195,13 @@ CONTAINS
              zatmtrdv(:,:) = 0._wp
           ENDIF
 !AW end
+!RDP add bdy to trend
+          IF( ln_bdy ) THEN
+             ALLOCATE( zbdytrdu(jpi,jpj), zbdytrdv(jpi,jpj) )
+             zbdytrdu(:,:) = 0._wp
+             zbdytrdv(:,:) = 0._wp
+          ENDIF
+! END RDP
           zspgtrdu(:,:) = 0._wp
           zspgtrdv(:,:) = 0._wp
           zpvotrdu(:,:) = 0._wp
@@ -386,15 +395,15 @@ CONTAINS
                END DO
             END DO
          ENDIF 
-      ENDIF
 !AW add atm to mom trends
-      IF( l_trddyn ) THEN
-         ! atmospheric pressure trend diagnostic
-         zatmtrdu(:,:) = zu_frc(:,:) - zatmtrdu(:,:)
-         zatmtrdv(:,:) = zv_frc(:,:) - zatmtrdv(:,:)
-         CALL trd_dyn( zatmtrdu, zatmtrdv, jpdyn_atm, kt)
-      ENDIF
+         IF( l_trddyn ) THEN
+            ! atmospheric pressure trend diagnostic
+            zatmtrdu(:,:) = zu_frc(:,:) - zatmtrdu(:,:)
+            zatmtrdv(:,:) = zv_frc(:,:) - zatmtrdv(:,:)
+            CALL trd_dyn( zatmtrdu, zatmtrdv, jpdyn_atm, kt)
+         ENDIF
 !AW end
+      ENDIF
       !
       !                                   !=  Add atmospheric pressure forcing  =!
       !                                   !  ----------------------------------  !
@@ -604,7 +613,19 @@ CONTAINS
          !
          !                             ! update (ua_e,va_e) to enforce volume conservation at open boundaries
          !                             ! values of zhup2_e and zhvp2_e on the halo are not needed in bdy_vol2d
-         IF( ln_bdy .AND. ln_vol ) CALL bdy_vol2d( kt, jn, ua_e, va_e, zhup2_e, zhvp2_e )
+         IF( ln_bdy .AND. ln_vol ) THEN
+            IF (l_trddyn) THEN
+               ALLOCATE( ua_tmp(jpi,jpj), va_tmp(jpi,jpj) )
+               ua_tmp(:,:) = ua_e(:,:)
+               va_tmp(:,:) = va_e(:,:)
+            ENDIF
+            CALL bdy_vol2d( kt, jn, ua_e, va_e, zhup2_e, zhvp2_e )
+            IF (l_trddyn) THEN
+               zbdytrdu(:,:) = zbdytrdu(:,:) + za2 * ( ua_e(:,:) - ua_tmp(:,:) ) / rdtbt
+               zbdytrdv(:,:) = zbdytrdv(:,:) + za2 * ( va_e(:,:) - va_tmp(:,:) ) / rdtbt
+               DEALLOCATE( ua_tmp, va_tmp )
+            ENDIF
+         ENDIF
          !
          !                             ! resulting flux at mid-step (not over the full domain)
          zhU(1:jpim1,1:jpj  ) = e2u(1:jpim1,1:jpj  ) * ua_e(1:jpim1,1:jpj  ) * zhup2_e(1:jpim1,1:jpj  )   ! not jpi-column
@@ -756,14 +777,14 @@ CONTAINS
                   DO jj = 2, jpjm1
                      DO ji = fs_2, fs_jpim1   ! vector opt.
                         ztfrtrdu(ji,jj) = ztfrtrdu(ji,jj) + za2 * 0.5_wp*( rCdU_top(ji+1,jj)+rCdU_top(ji,jj)) * un_e(ji,jj) * hur_e(ji,jj)
-                        ztfrtrdv(ji,jj) = ztfrtrdv(ji,jj) + za2 * 0.5_wp*( rCdU_top(ji+1,jj)+rCdU_top(ji,jj)) * vn_e(ji,jj) * hvr_e(ji,jj)
+                        ztfrtrdv(ji,jj) = ztfrtrdv(ji,jj) + za2 * 0.5_wp*( rCdU_top(ji,jj+1)+rCdU_top(ji,jj)) * vn_e(ji,jj) * hvr_e(ji,jj)
                      END DO
                   END DO
                ENDIF
                DO jj = 2, jpjm1
                   DO ji = fs_2, fs_jpim1   ! vector opt.
                      zbfrtrdu(ji,jj) = zbfrtrdu(ji,jj) + za2 * 0.5_wp*( rCdU_bot(ji+1,jj)+rCdU_bot(ji,jj)) * un_e(ji,jj) * hur_e(ji,jj)
-                     zbfrtrdv(ji,jj) = zbfrtrdv(ji,jj) + za2 * 0.5_wp*( rCdU_bot(ji+1,jj)+rCdU_bot(ji,jj)) * vn_e(ji,jj) * hvr_e(ji,jj)
+                     zbfrtrdv(ji,jj) = zbfrtrdv(ji,jj) + za2 * 0.5_wp*( rCdU_bot(ji,jj+1)+rCdU_bot(ji,jj)) * vn_e(ji,jj) * hvr_e(ji,jj)
                   END DO
                END DO
             ENDIF
@@ -828,14 +849,25 @@ CONTAINS
                END DO
             END DO
          ENDIF
-!jth implicit bottom friction:
-         IF ( ll_wd ) THEN ! revert to explicit for bit comparison tests in non wad runs
+         IF ( ll_wd ) THEN ! RDP implicit drag
+            IF (l_trddyn) THEN 
+               ALLOCATE( ua_tmp(jpi,jpj), va_tmp(jpi,jpj) )
+               ua_tmp(:,:) = ua_e(:,:)
+               va_tmp(:,:) = va_e(:,:)
+            ENDIF
             DO jj = 2, jpjm1
                DO ji = fs_2, fs_jpim1   ! vector opt.
-                     ua_e(ji,jj) =  ua_e(ji,jj) /(1.0 -   rdtbt * zCdU_u(ji,jj) * hur_e(ji,jj))
-                     va_e(ji,jj) =  va_e(ji,jj) /(1.0 -   rdtbt * zCdU_v(ji,jj) * hvr_e(ji,jj))
+                  ! RDP: Uses the incorrect depth variable for flux form ??
+                  ua_e(ji,jj) =  ua_e(ji,jj) /(1.0 -   rdtbt * zCdU_u(ji,jj) * hur_e(ji,jj))
+                  va_e(ji,jj) =  va_e(ji,jj) /(1.0 -   rdtbt * zCdU_v(ji,jj) * hvr_e(ji,jj))
                END DO
             END DO
+            IF (l_trddyn) THEN ! get bottom drag diagnositc (TODO: add ice drag)
+               za2 = wgtbtp2(jn)
+               zbfrtrdu(:,:) = zbfrtrdu(:,:) + za2 * (ua_e(:,:) - ua_tmp(:,:)) / rdtbt
+               zbfrtrdv(:,:) = zbfrtrdu(:,:) + za2 * (va_e(:,:) - va_tmp(:,:)) / rdtbt
+               DEALLOCATE( ua_tmp, va_tmp )
+            ENDIF
          ENDIF
        
          IF( .NOT.ln_linssh ) THEN   !* Update ocean depth (variable volume case only)
@@ -863,7 +895,21 @@ CONTAINS
          !
          !
          !                                                 ! open boundaries
-         IF( ln_bdy )   CALL bdy_dyn2d( jn, ua_e, va_e, un_e, vn_e, hur_e, hvr_e, ssha_e )
+         IF( ln_bdy ) THEN
+            IF (l_trddyn) THEN
+               ALLOCATE( ua_tmp(jpi,jpj), va_tmp(jpi,jpj) )
+               ua_tmp(:,:) = ua_e(:,:)
+               va_tmp(:,:) = va_e(:,:)
+            ENDIF
+            CALL bdy_dyn2d( jn, ua_e, va_e, un_e, vn_e, hur_e, hvr_e, ssha_e )
+            IF (l_trddyn) THEN
+               za2 = wgtbtp2(jn)
+               zbdytrdu(:,:) = zbdytrdu(:,:) + za2 * ( ua_e(:,:) - ua_tmp(:,:) ) / rdtbt
+               zbdytrdv(:,:) = zbdytrdv(:,:) + za2 * ( va_e(:,:) - va_tmp(:,:) ) / rdtbt
+               DEALLOCATE( ua_tmp, va_tmp )
+            ENDIF
+         ENDIF
+
 #if defined key_agrif                                                           
          IF( .NOT.Agrif_Root() )  CALL agrif_dyn_ts( jn )  ! Agrif
 #endif
@@ -1025,10 +1071,14 @@ CONTAINS
       IF( ln_wd_dl )   DEALLOCATE( ztwdmask, zuwdmask, zvwdmask, zuwdav2, zvwdav2 )
       !
       IF( l_trddyn ) THEN
+         CALL trd_dyn( zbdytrdu, zbdytrdv, jpdyn_bdy2d, kt )
          CALL trd_dyn( zspgtrdu, zspgtrdv, jpdyn_spg, kt )
          CALL trd_dyn( zpvotrdu, zpvotrdv, jpdyn_pvo, kt )
          CALL trd_dyn( zbfrtrdu, zbfrtrdv, jpdyn_bfr, kt )
          DEALLOCATE( zspgtrdu, zspgtrdv, zpvotrdu, zpvotrdv, ztautrdu, ztautrdv, zbfrtrdu, zbfrtrdv )
+         IF ( ln_bdy ) THEN
+                 DEALLOCATE( zbdytrdu, zbdytrdv )
+         ENDIF
          IF( ln_isfcav.OR.ln_drgice_imp ) THEN          ! top+bottom friction (ocean cavities)
             CALL trd_dyn( ztfrtrdu, ztfrtrdv, jpdyn_tfr, kt )
             DEALLOCATE( ztfrtrdu, ztfrtrdv )
