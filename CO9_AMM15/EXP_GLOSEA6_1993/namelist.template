@@ -1,6 +1,6 @@
 &namrun
-cn_exp='CHAMFER_lat_north',
-cn_ocerst_in='CHAMFER_lat_north___RSTNIT___restart',
+cn_exp='CHAMFER',
+cn_ocerst_in='CHAMFER___RSTNIT___restart',
 cn_ocerst_indir='RESTART_IN/',
 cn_ocerst_out='restart',
 cn_ocerst_outdir='RESTART_OUT/',
@@ -10,12 +10,13 @@ ln_mskland=.true.,
 ln_rstart=__RSTART__,
 nn_rstctl=__RSTCTL__,      !  restart control ==> activated only if ln_rstart=T
 ln_rstdate=.true.,
-!nn_date0=19930101,
+nn_date0=19930101,
 nn_euler=1,
 nn_istate=0,
 nn_it000=__IT000__,
 nn_itend=__ITEND__,
 nn_leapy=1,
+nn_wxios=1, 
 /
 &namcfg
 ln_read_cfg=.true.,

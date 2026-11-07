@@ -165,6 +165,8 @@
         <field id="cfl_cv"       long_name="v-courant number"   unit="#" />
         <field id="cfl_cw"       long_name="w-courant number"   unit="#" />
 
+        <field id="rCdU"       long_name="rCdU_bot"   unit="m" />
+
       </field_group> <!-- grid_T -->
 
       <!-- Tides -->
@@ -412,6 +414,20 @@
       <!-- U grid -->
       
       <field_group id="grid_U"   grid_ref="grid_U_2D">
+        <field id="un_e"           long_name="une"                   standard_name="une"                  unit="m"                               />
+        <field id="hur_e"           long_name="hure"                   standard_name="hure"                  unit="m"                               />
+        <field id="ssumask"           long_name="ssumask"                   standard_name="ssumask"                  unit="m"                               />
+        <field id="zbfrtrdu"           long_name="zbfrtrdu"                   standard_name="zbfrtrdu"                  unit="m"                               />
+        <field id="zbfrtrdu1"           long_name="zbfrtrdu1"                   standard_name="zbfrtrdu1"                  unit="m"                               />
+        <field id="zutrd_bfr2d"           long_name="zutrd_bfr2d"                   standard_name="zutrd_bfr2d"                  unit="m"                               />
+        <field id="r1_hu_a"           long_name="r1_hu_a"                   standard_name="r1_hu_a"                  unit="m"                               />
+        <field id="zutrd_tau2d"           long_name="zutrd_tau2d"                   standard_name="zutrd_tau2d"                  unit="m"                               />
+        <field id="zue"           long_name="zue"                   standard_name="zue"                  unit="m"                               />
+        <field id="bfr_final"           long_name="bfr_final"                   standard_name="bfr_final"                  unit="m"                               />
+        <field id="pu_before"           long_name="pu_before"                   standard_name="pu_before"                  unit="m"                               />
+        <field id="umask5"           long_name="umask5"                   standard_name="umask5"                  unit="m"                               />
+        <field id="e3u_a0"           long_name="e3u_a0"                   standard_name="e3u_a0"                  unit="m"                               />
+        <field id="e3u_a5"           long_name="e3u_a5"                   standard_name="e3u_a5"                  unit="m"                               />
         <field id="e2u"           long_name="U-cell width in meridional direction"                   standard_name="cell_width"                  unit="m"                               />
         <field id="e3u"           long_name="U-cell thickness"                                       standard_name="cell_thickness"              unit="m"          grid_ref="grid_U_3D" />
         <field id="e3u_0"         long_name="Initial U-cell thickness"                               standard_name="ref_cell_thickness"          unit="m"          grid_ref="grid_U_3D"/>
@@ -919,6 +935,8 @@
      <field id="utrd_tot2d"     long_name="i-trend: total momentum trend before atf: 2D component"    unit="m/s^2"  grid_ref="grid_U_2D" />   
      <field id="utrd_atf"       long_name="i-trend: asselin time filter trend"              unit="m/s^2"                        />   
      <field id="utrd_atm2d"     long_name="i-trend: atmospheric pressure: 2D component "            unit="m/s^2"  grid_ref="grid_U_2D"  />
+     <field id="utrd_bdy"       long_name="i-trend: lateral boundary forcing: 3D component "            unit="m/s^2"  />
+     <field id="utrd_bdy2d"     long_name="i-trend: lateral boundary forcing: 2D component "            unit="m/s^2"  grid_ref="grid_U_2D"  />
 
      <!-- thickness weighted versions -->
      <field id="utrd_hpg_e3u"       unit="m2/s^2" > utrd_hpg * e3u </field>
@@ -942,6 +960,7 @@
      <field id="utrd_bfr2d_hu"      unit="m2/s^2" grid_ref="grid_U_2D" > utrd_bfr2d * hu </field>  
      <field id="utrd_tot2d_hu"      unit="m2/s^2" grid_ref="grid_U_2D" > utrd_tot2d * hu </field> 
      <field id="utrd_atm2d_hu"      unit="m2/s^2" grid_ref="grid_U_2D" > utrd_atm2d * hu </field>
+     <field id="utrd_bdy2d_hu"      unit="m2/s^2" grid_ref="grid_U_2D" > utrd_bdy2d * hu </field>
    </field_group>
 
    <field_group id="trendV" grid_ref="grid_V_3D">
@@ -969,6 +988,8 @@
      <field id="vtrd_tot2d"     long_name="j-trend: total momentum trend before atf: 2D component"    unit="m/s^2"  grid_ref="grid_V_2D" />   
      <field id="vtrd_atf"       long_name="j-trend: asselin time filter trend"              unit="m/s^2"                        />   
      <field id="vtrd_atm2d"     long_name="j-trend: atmospheric pressure: 2D component "            unit="m/s^2"  grid_ref="grid_V_2D"  />
+     <field id="vtrd_bdy"       long_name="j-trend: lateral boundary forcing: 3D component "            unit="m/s^2" />
+     <field id="vtrd_bdy2d"     long_name="j-trend: lateral boundary forcing: 2D component "            unit="m/s^2"  grid_ref="grid_V_2D"  />
 
      <!-- thickness weighted versions -->
      <field id="vtrd_hpg_e3v"       unit="m2/s^2" > vtrd_hpg * e3v </field>
@@ -992,6 +1013,7 @@
      <field id="vtrd_bfr2d_hv"      unit="m2/s^2" grid_ref="grid_V_2D" > vtrd_bfr2d * hv </field>  
      <field id="vtrd_tot2d_hv"      unit="m2/s^2" grid_ref="grid_V_2D" > vtrd_tot2d * hv </field>  
      <field id="vtrd_atm2d_hv"      unit="m2/s^2" grid_ref="grid_V_2D" > vtrd_atm2d * hv </field>
+     <field id="vtrd_bdy2d_hv"      unit="m2/s^2" grid_ref="grid_V_2D" > vtrd_bdy2d * hv </field>
    </field_group>
 
 

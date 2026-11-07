@@ -1,7 +1,7 @@
 
-iy1=1996 # initial year
-iy2=1996 # end year
-nit0=1215001 # namelist iteration start
+iy1=2023 # initial year
+iy2=2023 # end year
+nit0=11865961 # namelist iteration start
 ms=1 # months start
 im2=12
 
@@ -68,7 +68,7 @@ while [  $yy -le $iy2 ]; do
           > namelist_cfg
 
       # move previous restarts
-      mv RESTART_OUT/CHAMFER_lat_north_${nitrst}_restart* RESTART_IN/
+      mv RESTART_OUT/CHAMFER_${nitrst}_restart* RESTART_IN/
       
       # this is the RUN bit ------>>>>>
       
@@ -85,11 +85,12 @@ while [  $yy -le $iy2 ]; do
       mv ocean.output $OUTDIR/ocean.output
       mv namelist_cfg $OUTDIR/namelist_cfg
       mv *25hour*  $OUTDIR/.
-      mv CHAMFER_north_lat_1d_*  $OUTDIR/.
+      mv CHAMFER_1d_*  $OUTDIR/.
+      mv CHAMFER_1h_*  $OUTDIR/.
       mv mon*  $OUTDIR/.
       mv shelf*  $OUTDIR/.
       mv run.stat $OUTDIR/.
-      mv RESTART_IN/CHAMFER_lat_north_${nitrst}_restart* RESTARTS/.
+      mv RESTART_IN/CHAMFER_${nitrst}_restart* $OUTDIR/RESTARTS/.
       
       current_stp=`sed -n 1,1p time.step`
       if [ ! $current_stp -eq $nitend ]

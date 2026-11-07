@@ -69,8 +69,8 @@ CONTAINS
          IF( neuler == 0 .AND. kt == nit000 )   r1_2dt = 1._wp / rdt
          IF ( ll_dyn3d ) THEN
              ALLOCATE( zbdytrdu(jpi,jpj,jpk), zbdytrdv(jpi,jpj,jpk) )
-             zbdytrdu(:,:) = 0._wp
-             zbdytrdv(:,:) = 0._wp
+             zbdytrdu(:,:,:) = 0._wp
+             zbdytrdv(:,:,:) = 0._wp
          ENDIF
       ENDIF
       ! RDP END
